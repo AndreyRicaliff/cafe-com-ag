@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Café com AG — Calendário Editorial</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0A0A0A;--surface:#141414;--card:#1C1C1C;--border:#2A2A2A;
+      --purple:#7B68BB;--purple-light:#9D8ED4;--purple-dim:rgba(123,104,187,0.15);
+      --red:#C0392B;--red-dim:rgba(192,57,43,0.15);
+      --white:#FFFFFF;--muted:#666;--text:#E0E0E0;
+    }
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+    #app{max-width:900px;margin:0 auto;padding:1.5rem}
+
+    .topbar{display:flex;align-items:center;gap:12px;padding-bottom:1rem;border-bottom:0.5px solid var(--border);margin-bottom:1.25rem}
+    .topbar-info{display:flex;flex-direction:column;gap:2px}
+    .topbar-brand{font-size:14px;font-weight:500;color:var(--white);letter-spacing:1.5px;text-transform:uppercase}
+    .topbar-sub{font-size:10px;color:var(--purple);letter-spacing:2.5px;text-transform:uppercase}
+    .topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+    .topbar-user{font-size:11px;color:var(--muted)}
+    .topbar-user strong{color:var(--purple-light);font-weight:500}
+    .btn-logout{font-size:10px;padding:4px 12px;border-radius:6px;border:0.5px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;letter-spacing:.3px;text-transform:uppercase}
+    .btn-logout:hover{border-color:var(--red);color:#e05a4a}
+
+    .tabs{display:flex;gap:4px;margin-bottom:1.25rem}
+    .tab{font-size:12px;padding:7px 18px;border-radius:8px;border:0.5px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;letter-spacing:.3px;text-transform:uppercase;transition:all .15s}
+    .tab:hover{border-color:var(--purple);color:var(--purple)}
+    .tab.active{background:var(--purple);color:var(--white);border-color:var(--purple);font-weight:500}
+
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem}
+    .stat{background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:.7rem 1rem}
+    .stat-n{font-size:22px;font-weight:500;color:var(--purple)}
+    .stat-l{font-size:10px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+
+    .legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:1rem}
+    .leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+    .leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+    .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem}
+    .fbtn{font-size:11px;padding:5px 14px;border-radius:20px;border:0.5px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;letter-spacing:.3px;text-transform:uppercase}
+    .fbtn:hover{border-color:var(--purple);color:var(--purple)}
+    .fbtn.on{background:var(--purple);color:var(--white);border-color:var(--purple);font-weight:500}
+
+    .list{display:flex;flex-direction:column;gap:10px}
+    .card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:1rem 1.15rem;transition:border-color .15s}
+    .card:hover{border-color:#3a3a3a}
+    .card.editing{border-color:var(--purple)}
+    .card.holiday{opacity:.4;border-style:dashed}
+    .card-row{display:flex;gap:12px;align-items:flex-start}
+    .ep-num{font-size:11px;color:#444;min-width:28px;padding-top:2px;font-weight:500;font-variant-numeric:tabular-nums}
+    .badge{display:inline-block;font-size:9px;font-weight:500;padding:2px 9px;border-radius:10px;margin-bottom:5px;letter-spacing:.6px;text-transform:uppercase}
+    .b-rh{background:var(--purple-dim);color:var(--purple-light)}
+    .b-contabil{background:rgba(255,255,255,.05);color:#aaa;border:0.5px solid #333}
+    .b-financeiro{background:rgba(255,255,255,.04);color:#888;border:0.5px solid #2e2e2e}
+    .b-estrategia{background:var(--purple-dim);color:var(--purple-light)}
+    .b-comercial{background:var(--red-dim);color:#e05a4a}
+    .ep-date{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.2px}
+    .ep-title{font-size:13px;font-weight:500;color:var(--white);margin-bottom:4px;line-height:1.4}
+    .ep-pres{font-size:11px;color:var(--muted);margin-bottom:5px}
+    .ep-pres strong{color:var(--purple-light);font-weight:500}
+    .ep-sum{font-size:11px;color:#555;line-height:1.55;margin-bottom:8px}
+    .actions{display:flex;gap:8px;margin-top:6px}
+    .btn-e{font-size:10px;padding:4px 12px;border-radius:6px;border:0.5px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;letter-spacing:.3px;text-transform:uppercase}
+    .btn-e:hover{border-color:var(--purple);color:var(--purple)}
+    .btn-s{font-size:10px;padding:4px 14px;border-radius:6px;background:var(--purple);color:var(--white);border:none;cursor:pointer;font-weight:500;display:none;letter-spacing:.3px;text-transform:uppercase}
+    .efields{display:none;flex-direction:column;gap:8px;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border)}
+    .efields.open{display:flex}
+    .efields label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+    .efields input,.efields textarea,.efields select{width:100%;font-size:12px;padding:7px 10px;border-radius:7px;border:0.5px solid var(--border);background:var(--surface);color:var(--white)}
+    .efields textarea{resize:vertical;min-height:55px}
+    .efields select option{background:var(--surface)}
+
+    #tab-historico{display:none}
+    .hist-header{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem}
+    .hist-title{font-size:14px;font-weight:500;color:var(--white)}
+    .hist-count{font-size:10px;color:var(--purple-light);background:var(--purple-dim);border:0.5px solid var(--purple);border-radius:6px;padding:2px 10px;letter-spacing:.5px}
+    .hist-notice{font-size:11px;color:var(--muted);background:var(--surface);border:0.5px solid var(--border);border-radius:8px;padding:.65rem 1rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:8px;line-height:1.5}
+    .hist-notice svg{flex-shrink:0}
+    .hist-empty{font-size:12px;color:var(--muted);text-align:center;padding:3rem 0}
+    .hist-list{display:flex;flex-direction:column;gap:8px}
+    .hist-entry{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:.85rem 1rem}
+    .hist-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+    .hist-ts{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
+    .hist-dot{width:3px;height:3px;border-radius:50%;background:#444;flex-shrink:0}
+    .hist-user{font-size:10px;color:var(--purple-light)}
+    .hist-ep{font-size:10px;color:#555}
+    .hist-field{font-size:10px;background:rgba(255,255,255,.05);color:#888;border:0.5px solid #333;border-radius:4px;padding:1px 7px;text-transform:uppercase;letter-spacing:.4px}
+    .hist-diff{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:start}
+    .hist-old{font-size:11px;color:#e05a4a;background:var(--red-dim);border-radius:5px;padding:4px 8px;word-break:break-word;line-height:1.4}
+    .hist-new{font-size:11px;color:#6bcf7f;background:rgba(107,207,127,.08);border-radius:5px;padding:4px 8px;word-break:break-word;line-height:1.4}
+    .hist-arrow{font-size:14px;color:#444;align-self:center;text-align:center}
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <div class="topbar">
+    <svg width="36" height="36" viewBox="0 0 44 44" fill="none">
+      <rect width="44" height="44" rx="8" fill="#141414"/>
+      <polygon points="22,8 8,30 13,30 22,14 31,30 36,30" fill="white"/>
+      <rect x="28" y="20" width="8" height="10" fill="white"/>
+    </svg>
+    <div class="topbar-info">
+      <span class="topbar-brand">AG Consultoria</span>
+      <span class="topbar-sub">Café com AG ☕</span>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-user">Logado como <strong id="user-email"></strong></div>
+      <button class="btn-logout" onclick="logout()">Sair</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('agenda',this)">Agenda</button>
+    <button class="tab" onclick="switchTab('historico',this)">Histórico de Alterações</button>
+  </div>
+
+  <div id="tab-agenda">
+    <div class="stats" id="stats"></div>
+    <div class="legend">
+      <span class="leg"><span class="leg-dot" style="background:#7B68BB"></span>RH</span>
+      <span class="leg"><span class="leg-dot" style="background:#888"></span>Contábil</span>
+      <span class="leg"><span class="leg-dot" style="background:#555"></span>Financeiro</span>
+      <span class="leg"><span class="leg-dot" style="background:#9D8ED4"></span>Estratégia</span>
+      <span class="leg"><span class="leg-dot" style="background:#C0392B"></span>Comercial</span>
+    </div>
+    <div class="filters">
+      <button class="fbtn on" onclick="setFilter('all',this)">Todos</button>
+      <button class="fbtn" onclick="setFilter('RH',this)">RH</button>
+      <button class="fbtn" onclick="setFilter('Contábil',this)">Contábil</button>
+      <button class="fbtn" onclick="setFilter('Financeiro',this)">Financeiro</button>
+      <button class="fbtn" onclick="setFilter('Estratégia',this)">Estratégia</button>
+      <button class="fbtn" onclick="setFilter('Comercial',this)">Comercial</button>
+    </div>
+    <div class="list" id="list"></div>
+  </div>
+
+  <div id="tab-historico">
+    <div class="hist-header">
+      <span class="hist-title">Histórico de Alterações</span>
+      <span class="hist-count" id="hist-count">0 registros</span>
+    </div>
+    <div class="hist-notice">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7B68BB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Registro imutável — cada alteração salva é gravada permanentemente neste log e não pode ser removida.
+    </div>
+    <div id="hist-list" class="hist-list"></div>
+  </div>
+</div>
+
+<script>
+const ALLOWED_DOMAIN = 'agconsultorialtda.com';
+
+let currentUser = null;
+
+const getSession  = () => { try { return JSON.parse(localStorage.getItem('cag_session')); } catch { return null; } };
+const dropSession = () => { localStorage.removeItem('cag_session'); currentUser = null; };
+
+const getLog  = () => { try { return JSON.parse(localStorage.getItem('cag_log')) || []; } catch { return []; } };
+const pushLog = e => { const l = getLog(); l.unshift(e); localStorage.setItem('cag_log', JSON.stringify(l)); };
+
+function renderLog() {
+  const log = getLog();
+  document.getElementById('hist-count').textContent = `${log.length} registro${log.length !== 1 ? 's' : ''}`;
+  const el = document.getElementById('hist-list');
+  if (!log.length) { el.innerHTML = '<div class="hist-empty">Nenhuma alteração registrada ainda.</div>'; return; }
+  el.innerHTML = log.map(e => `
+    <div class="hist-entry">
+      <div class="hist-top">
+        <span class="hist-ts">${e.ts}</span>
+        <span class="hist-dot"></span>
+        <span class="hist-user">${e.user}</span>
+        <span class="hist-dot"></span>
+        <span class="hist-ep">Ep. #${e.ep}</span>
+        <span class="hist-field">${e.field}</span>
+      </div>
+      <div class="hist-diff">
+        <div class="hist-old">− ${e.old || '(vazio)'}</div>
+        <div class="hist-arrow">→</div>
+        <div class="hist-new">+ ${e.novo || '(vazio)'}</div>
+      </div>
+    </div>`).join('');
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-agenda').style.display    = name === 'agenda'    ? 'block' : 'none';
+  document.getElementById('tab-historico').style.display = name === 'historico' ? 'block' : 'none';
+  if (name === 'historico') renderLog();
+}
+
+function logout() {
+  dropSession();
+  window.location.href = 'login.html';
+}
+
+const HOLS = ['2025-04-21','2025-05-01','2025-06-19','2025-09-07','2025-10-12','2025-11-02','2025-11-15','2025-11-20','2025-12-25','2026-01-01','2026-02-16','2026-02-17','2026-04-03','2026-04-21','2026-05-01','2026-06-04'];
+const BCLS = {RH:'b-rh',Contábil:'b-contabil',Financeiro:'b-financeiro',Estratégia:'b-estrategia',Comercial:'b-comercial'};
+const TOPICS = [
+  {area:'Contábil',title:"FOOD's: Como pagar menos imposto usando COMBOS",pres:'Runa e Mônica',sum:'Estratégia tributária para restaurantes: como estruturar combos para reduzir a carga de impostos legalmente.'},
+  {area:'Financeiro',title:'Por que você vende bem e mesmo assim não tem dinheiro?',pres:'Yasmin',sum:'Diferença entre lucro e caixa. Faturar não é enriquecer. Exemplo do dia a dia para empresários.'},
+  {area:'RH',title:'Erros silenciosos de gestão que custam dinheiro',pres:'Regina e Lívia',sum:'Erros invisíveis na gestão de pessoas que geram perda financeira: absenteísmo, retrabalho, turnover e desengajamento.'},
+  {area:'Estratégia',title:'Como definir metas que sua equipe realmente bate',pres:'Alisson e Cid',sum:'Metodologia prática de definição e desdobramento de metas. OKRs simplificados para PMEs.'},
+  {area:'Financeiro',title:'Os 3 números que todo empresário precisa olhar toda semana',pres:'Ana Lívia',sum:'Caixa disponível, contas a pagar em 7/15 dias e faturamento semanal. Como montar um painel simples.'},
+  {area:'RH',title:'Como lidar com colaborador difícil sem desgastar o time',pres:'Aline e Vitória',sum:'Protocolos humanizados de gestão de conflitos. Como ter conversas difíceis preservando o clima organizacional.'},
+  {area:'Comercial',title:'Como prospectar clientes pelo WhatsApp sem parecer chato',pres:'Cid',sum:'Script de abordagem comercial pelo WhatsApp. Frequência de contato, quebra-gelos e como avançar na negociação.'},
+  {area:'Contábil',title:'Estruturação de filiais: logística tributária do seu negócio',pres:'Renata e Edinho',sum:'Como estruturar filiais para otimizar a carga tributária. Impactos no Simples Nacional e lucro presumido.'},
+  {area:'Financeiro',title:'O erro financeiro que mais quebra empresas pequenas',pres:'Yasmin e Ana Lívia',sum:'Misturar contas pessoais com empresa e retiradas desorganizadas. Como preparar controles simples.'},
+  {area:'RH',title:'Liderança Educadora: como acelerar a curva de aprendizado',pres:'Regina e Aline',sum:'Estratégias práticas para líderes que precisam desenvolver equipes em pouco tempo. Feedback e metas de desenvolvimento.'},
+  {area:'Estratégia',title:'Como identificar os gargalos que travam seu crescimento',pres:'Alisson e Cid',sum:'Diagnóstico rápido de estrangulamentos operacionais e estratégicos. Ferramentas simples para PMEs.'},
+  {area:'Financeiro',title:'Como saber se sua empresa dá lucro de verdade',pres:'Yasmin',sum:'Diferença entre custo, despesa e margem de contribuição — explicados de forma simples com exemplos reais.'},
+  {area:'RH',title:'Contratando caráter e treinando habilidades',pres:'Lívia e Vitória',sum:'Soft skills vs Hard skills: como montar um processo seletivo que avalia além do currículo.'},
+  {area:'Comercial',title:'O processo de vendas que transforma indicação em receita',pres:'Alisson e Cid',sum:'Como criar um funil de indicações ativo. Programa de referral simples para serviços B2B.'},
+  {area:'Financeiro',title:'Preço errado: o vilão invisível do seu negócio',pres:'Ana Lívia',sum:'Por que empresários vendem muito e ganham pouco. Cálculo de precificação para produto e serviço.'},
+  {area:'RH',title:'Gestão de equipes de alta performance com análise comportamental',pres:'Regina e Lívia',sum:'Como usar perfil comportamental para montar times equilibrados. DISC simplificado na prática.'},
+  {area:'Estratégia',title:'Planejamento estratégico em 1 página para pequenas empresas',pres:'Alisson e Cid',sum:'Canvas simplificado. Como definir posicionamento, diferenciais e prioridades estratégicas em 2 horas.'},
+  {area:'Financeiro',title:'Você trabalha ou seu dinheiro trabalha para você?',pres:'Yasmin',sum:'Giro de caixa, estoque parado e prazo de recebimento vs pagamento. Como fazer o dinheiro circular a favor.'},
+  {area:'RH',title:'Erros que atrasam o fechamento da sua vaga',pres:'Aline e Vitória',sum:'Erros mais comuns no processo seletivo: job description ruim, entrevistas sem critério e falta de agilidade.'},
+  {area:'Comercial',title:'Como criar uma rotina comercial que gera resultado todo mês',pres:'Cid e Alisson',sum:'A rotina das 3 Cs: contato, conquista e conversão. Agenda comercial semanal para resultados previsíveis.'},
+];
+
+function buildEpisodes() {
+  const saved = localStorage.getItem('cag_episodes');
+  if (saved) return JSON.parse(saved).map(e => ({ ...e, date: new Date(e.date) }));
+  let mons = [], d = new Date('2026-04-24');
+  d.setDate(d.getDate() + ((1 + 7 - d.getDay()) % 7 || 7));
+  while (mons.length < TOPICS.length + 5) {
+    const iso = d.toISOString().slice(0,10);
+    mons.push({ date: new Date(d), iso, hol: HOLS.includes(iso) });
+    d.setDate(d.getDate() + 7);
+  }
+  let eps = [], ti = 0;
+  for (let i = 0; i < mons.length && ti < TOPICS.length; i++) {
+    const m = mons[i];
+    if (m.hol) eps.push({ id: eps.length, ...m, hol: true, title: 'Feriado — live suspensa', area:'', pres:'', sum:'' });
+    else        eps.push({ id: eps.length, ...m, hol: false, ...TOPICS[ti++] });
+  }
+  return eps;
+}
+
+let eps = buildEpisodes();
+let flt = 'all';
+const fmt = d => new Date(d).toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+
+function renderStats() {
+  const live = eps.filter(e => !e.hol);
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="stat-n">${live.length}</div><div class="stat-l">Lives</div></div>
+    <div class="stat"><div class="stat-n">${eps.filter(e=>e.hol).length}</div><div class="stat-l">Feriados</div></div>
+    <div class="stat"><div class="stat-n">5</div><div class="stat-l">Áreas</div></div>
+    <div class="stat"><div class="stat-n">30<span style="font-size:11px">min</span></div><div class="stat-l">Por live</div></div>`;
+}
+
+function renderList() {
+  const vis = eps.filter(e => flt === 'all' || e.area === flt);
+  document.getElementById('list').innerHTML = vis.map(e => {
+    if (e.hol) return `<div class="card holiday"><div class="card-row"><span class="ep-num">—</span><div style="flex:1"><div class="ep-date">${fmt(e.date)}</div><div class="ep-title" style="color:#444">${e.title}</div></div></div></div>`;
+    const n = eps.filter(x => !x.hol && x.id <= e.id).length;
+    return `<div class="card" id="c${e.id}">
+      <div class="card-row">
+        <span class="ep-num">#${String(n).padStart(2,'0')}</span>
+        <div style="flex:1">
+          <span class="badge ${BCLS[e.area]||''}">${e.area}</span>
+          <div class="ep-date">${fmt(e.date)} · 8h30</div>
+          <div class="ep-title">${e.title}</div>
+          <div class="ep-pres">Apresenta: <strong>${e.pres}</strong></div>
+          <div class="ep-sum">${e.sum}</div>
+          <div class="actions">
+            <button class="btn-e" onclick="tog(${e.id})">Editar</button>
+            <button class="btn-s" id="bs${e.id}" onclick="sav(${e.id})">Salvar</button>
+          </div>
+          <div class="efields" id="ef${e.id}">
+            <label>Título</label>
+            <input type="text" id="et${e.id}" value="${e.title.replace(/"/g,'&quot;')}">
+            <label>Apresentador(es)</label>
+            <input type="text" id="ep${e.id}" value="${e.pres.replace(/"/g,'&quot;')}">
+            <label>Resumo do episódio</label>
+            <textarea id="es${e.id}">${e.sum}</textarea>
+            <label>Área</label>
+            <select id="ea${e.id}">${['RH','Contábil','Financeiro','Estratégia','Comercial'].map(a=>`<option${a===e.area?' selected':''}>${a}</option>`).join('')}</select>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function tog(id) {
+  const ef = document.getElementById('ef'+id), card = document.getElementById('c'+id), bs = document.getElementById('bs'+id);
+  const open = ef.classList.contains('open');
+  ef.classList.toggle('open', !open);
+  card.classList.toggle('editing', !open);
+  bs.style.display = open ? 'none' : 'inline-block';
+  card.querySelector('.btn-e').textContent = open ? 'Editar' : 'Cancelar';
+}
+
+function sav(id) {
+  const e   = eps.find(x => x.id === id);
+  const epN = String(eps.filter(x => !x.hol && x.id <= id).length).padStart(2,'0');
+  const ts  = new Date().toLocaleString('pt-BR');
+  const usr = currentUser?.email || '?';
+
+  const changes = [
+    { field:'Título',          old: e.title, novo: document.getElementById('et'+id).value },
+    { field:'Apresentador(es)',old: e.pres,  novo: document.getElementById('ep'+id).value },
+    { field:'Resumo',          old: e.sum,   novo: document.getElementById('es'+id).value },
+    { field:'Área',            old: e.area,  novo: document.getElementById('ea'+id).value },
+  ];
+
+  changes.forEach(c => { if (c.old !== c.novo) pushLog({ ts, user: usr, ep: epN, field: c.field, old: c.old, novo: c.novo }); });
+
+  e.title = document.getElementById('et'+id).value;
+  e.pres  = document.getElementById('ep'+id).value;
+  e.sum   = document.getElementById('es'+id).value;
+  e.area  = document.getElementById('ea'+id).value;
+
+  localStorage.setItem('cag_episodes', JSON.stringify(eps));
+  renderList(); renderStats();
+}
+
+function setFilter(a, btn) {
+  flt = a;
+  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  renderList();
+}
+
+window.addEventListener('load', () => {
+  const s = getSession();
+  if (!s) { window.location.href = 'login.html'; return; }
+  currentUser = s;
+  document.getElementById('user-email').textContent = currentUser.email;
+  renderStats();
+  renderList();
+});
+</script>
+</body>
+</html>
